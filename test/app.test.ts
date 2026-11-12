@@ -22,6 +22,17 @@ describe('app', () => {
     assert.equal(await res.text(), 'health-service');
   });
 
+  it('returns the version on GET /version', async () => {
+    const res = await fetch(`${base}/version`);
+    assert.equal(res.status, 200);
+    assert.equal(await res.text(), 'health-service 1.0');
+  });
+
+  it('returns 405 for POST /version', async () => {
+    const res = await fetch(`${base}/version`, { method: 'POST' });
+    assert.equal(res.status, 405);
+  });
+
   it('returns 404 for unknown routes', async () => {
     assert.equal((await fetch(`${base}/nope`)).status, 404);
   });
