@@ -1,0 +1,45 @@
+name: ci
+
+on:
+  pull_request:
+    branches: [main]
+
+# Least privilege: the job can read the repository and nothing else. No secrets are used.
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22.18.0'
+      - name: Tests
+        run: npm test
+
+  size:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Change size (over 100 changed lines is flagged, over 400 fails unless a human adds the size-override label)
+        env:
+          BASE: origin/${{ github.base_ref }}
+          OVERRIDE: ${{ contains(github.event.pull_request.labels.*.name, 'size-override') }}
+        run: |
+          lines=$(git diff --numstat "$BASE"...HEAD | awk '{ if ($1 != "-") a += $1; if ($2 != "-") d += $2 } END { print a + d + 0 }')
+          echo "changed lines: $lines"
+          if [ "$lines" -gt 400 ] && [ "$OVERRIDE" != "true" ]; then
+            echo "::error::$lines changed lines is over 400. Split the ticket, or a human adds the size-override label."
+            exit 1
+          fi
+          if [ "$lines" -gt 100 ]; then echo "::warning::$lines changed lines is larger than normal (over 100)."; fi

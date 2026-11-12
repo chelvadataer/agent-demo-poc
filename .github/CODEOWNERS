@@ -1,0 +1,7 @@
+# Changes to these paths need a review from the named owner, because they control what CI checks,
+# what an agent session may do, and what gets installed.
+/.github/        @chelvadataer
+/CLAUDE.md       @chelvadataer
+/.claude/        @chelvadataer
+/package.json    @chelvadataer
+/package-lock.json @chelvadataer
